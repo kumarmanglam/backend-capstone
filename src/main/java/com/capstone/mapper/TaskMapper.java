@@ -5,7 +5,7 @@ import com.capstone.entity.Task;
 
 public class TaskMapper {
     public static Task TaskDtoToTask(TaskDto t){
-        return new Task(t.getId(), t.getTitle(), t.getDescription(),t.getCompleted());
+        return new Task(t.getId(), t.getTitle(), t.getDescription(),t.getCompleted(), null);
     }
 
 

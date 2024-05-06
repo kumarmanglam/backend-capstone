@@ -2,33 +2,42 @@ package com.capstone.service.impl;
 
 import com.capstone.dto.TaskDto;
 import com.capstone.entity.Task;
+import com.capstone.entity.User;
 import com.capstone.exception.ResourceNotFoundException;
 import com.capstone.mapper.TaskMapper;
 import com.capstone.repository.TaskRepository;
 import com.capstone.service.TaskService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.capstone.utility.AuthUtility;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@AllArgsConstructor
 public class TaskServiceImpl implements TaskService {
-
-    @Autowired
     TaskRepository repository;
+
+    AuthUtility authUtility;
+
     @Override
     public Task addTask(TaskDto dto) {
         try{
-            return repository.save(TaskMapper.TaskDtoToTask(dto));
+            Task task = TaskMapper.TaskDtoToTask(dto);
+            User userByUsername = authUtility.getUserByUsername();
+            task.setUser(userByUsername);
+            return repository.save(task);
         }catch (Exception e){
+            e.printStackTrace();
             throw new ResourceNotFoundException("Could not add Task");
         }
     }
 
     @Override
     public List<Task> getTasks() {
-        return repository.findAll();
+        User userByUsername = authUtility.getUserByUsername();
+        return repository.findAllByUserId(userByUsername.getId());
     }
 
     @Override
@@ -40,7 +49,7 @@ public class TaskServiceImpl implements TaskService {
     public Task updateTask(long id, TaskDto dto) {
         Optional<Task> task = repository.findById(id);
         if(task.isPresent()){
-            Task t = new Task(id, dto.getTitle(), dto.getDescription(), dto.getCompleted());
+            Task t = new Task(id, dto.getTitle(), dto.getDescription(), dto.getCompleted(), authUtility.getUserByUsername());
             return repository.save(t);
         }else{
             throw new ResourceNotFoundException("No Task exists with given id");
